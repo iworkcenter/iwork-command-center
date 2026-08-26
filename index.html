@@ -1,0 +1,1482 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I-WORK Command Center</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg-0:#0D1016;
+  --bg-1:#141822;
+  --bg-2:#1B202C;
+  --bg-3:#232939;
+  --border:#2A3142;
+  --border-soft:#20263434;
+  --text-1:#F4F1E9;
+  --text-2:#A6ADBD;
+  --text-3:#6C7385;
+  --brass:#C9A24B;
+  --brass-dim:#8A7133;
+  --brass-glow:rgba(201,162,75,0.14);
+
+  --hoy:#E15A4C;
+  --semana:#E29245;
+  --curso:#4A8FCB;
+  --espera:#DCB93F;
+  --terminado:#45A66E;
+  --backlog:#7A8194;
+
+  --critica:#E15A4C;
+  --alta:#E29245;
+  --media:#DCB93F;
+  --baja:#45A66E;
+
+  --radius-s:6px;
+  --radius-m:10px;
+  --radius-l:16px;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  background:
+    radial-gradient(1200px 600px at 85% -10%, var(--brass-glow), transparent 60%),
+    var(--bg-0);
+  color:var(--text-1);
+  font-family:'Inter',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+.mono{font-family:'JetBrains Mono',monospace;}
+.display{font-family:'Sora',sans-serif;}
+
+/* ---------- SHELL ---------- */
+.shell{display:flex; height:100vh; width:100vw;}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{
+  width:236px; min-width:236px; background:var(--bg-1);
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column; padding:22px 16px;
+}
+.brand{display:flex; align-items:center; gap:10px; padding:4px 6px 22px 6px;}
+.brand-mark{
+  width:34px; height:34px; border-radius:8px;
+  background:linear-gradient(135deg,var(--brass),#8A7133);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Sora',sans-serif; font-weight:800; color:#14141a; font-size:15px;
+  flex-shrink:0;
+}
+.brand-text .t1{font-family:'Sora',sans-serif; font-weight:700; font-size:14.5px; letter-spacing:0.4px;}
+.brand-text .t2{color:var(--text-3); font-size:10.5px; margin-top:1px;}
+
+.nav{display:flex; flex-direction:column; gap:2px; margin-top:6px;}
+.nav-item{
+  display:flex; align-items:center; gap:11px; padding:10px 12px;
+  border-radius:var(--radius-s); cursor:pointer; color:var(--text-2);
+  font-size:13.5px; font-weight:500; transition:background .15s, color .15s;
+  border:1px solid transparent;
+}
+.nav-item .ic{width:16px; text-align:center; font-size:14px; opacity:.85;}
+.nav-item:hover{background:var(--bg-2); color:var(--text-1);}
+.nav-item.active{background:var(--bg-2); color:var(--brass); border-color:var(--border);}
+.nav-item.active .ic{opacity:1;}
+
+.sidebar-foot{margin-top:auto; padding-top:16px; border-top:1px solid var(--border);}
+.sidebar-foot .label{font-size:10px; color:var(--text-3); letter-spacing:1.2px; text-transform:uppercase; margin-bottom:8px;}
+.mini-stat{display:flex; justify-content:space-between; font-size:12px; color:var(--text-2); padding:3px 2px;}
+.mini-stat b{color:var(--text-1); font-family:'JetBrains Mono',monospace; font-weight:600;}
+
+/* ---------- MAIN ---------- */
+.main{flex:1; display:flex; flex-direction:column; min-width:0;}
+
+.topbar{
+  height:60px; min-height:60px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:12px; padding:0 20px; background:var(--bg-0);
+}
+.topbar .view-title{font-family:'Sora',sans-serif; font-weight:700; font-size:16px; margin-right:8px; white-space:nowrap;}
+.search-wrap{position:relative; flex:1; max-width:360px;}
+.search-wrap input{
+  width:100%; background:var(--bg-1); border:1px solid var(--border); color:var(--text-1);
+  padding:8px 12px 8px 30px; border-radius:var(--radius-s); font-size:12.5px; font-family:'Inter',sans-serif;
+}
+.search-wrap input:focus{outline:none; border-color:var(--brass-dim);}
+.search-wrap .sic{position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-3); font-size:12px;}
+
+.btn{
+  border:1px solid var(--border); background:var(--bg-2); color:var(--text-1);
+  padding:8px 13px; border-radius:var(--radius-s); font-size:12.5px; font-weight:600;
+  cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all .15s; white-space:nowrap;
+  font-family:'Inter',sans-serif;
+}
+.btn:hover{background:var(--bg-3); border-color:var(--brass-dim);}
+.btn-primary{background:linear-gradient(135deg,var(--brass),#a9843c); color:#181410; border-color:transparent;}
+.btn-primary:hover{filter:brightness(1.08); background:linear-gradient(135deg,var(--brass),#a9843c);}
+.btn-ghost{background:transparent; border-color:var(--border);}
+.btn-ghost:hover{background:var(--bg-2);}
+.btn-sm{padding:5px 9px; font-size:11.5px;}
+.btn-danger-line{color:#E15A4C; border-color:#4a2622;}
+
+.filter-toggle{position:relative;}
+.filter-badge{
+  position:absolute; top:-5px; right:-5px; background:var(--brass); color:#14141a;
+  font-size:9.5px; font-weight:700; width:15px; height:15px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace;
+}
+
+.topbar-right{margin-left:auto; display:flex; gap:8px; align-items:center;}
+
+/* ticker */
+.ticker{
+  height:34px; border-bottom:1px solid var(--border); background:var(--bg-1);
+  display:flex; align-items:center; padding:0 20px; gap:22px; overflow-x:auto;
+}
+.ticker-item{display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-2); white-space:nowrap;}
+.ticker-dot{width:6px; height:6px; border-radius:50%; flex-shrink:0;}
+.ticker-item b{font-family:'JetBrains Mono',monospace; color:var(--text-1); font-weight:600;}
+.ticker-sep{width:1px; height:14px; background:var(--border); flex-shrink:0;}
+
+/* filter panel */
+.filter-panel{
+  display:none; padding:12px 20px; border-bottom:1px solid var(--border); background:var(--bg-1);
+  gap:10px; flex-wrap:wrap; align-items:center;
+}
+.filter-panel.open{display:flex;}
+.filter-panel select{
+  background:var(--bg-2); border:1px solid var(--border); color:var(--text-1);
+  padding:6px 8px; border-radius:var(--radius-s); font-size:12px; font-family:'Inter',sans-serif;
+}
+.filter-panel select:focus{outline:none; border-color:var(--brass-dim);}
+.filter-panel .fp-label{font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:.8px; margin-right:2px;}
+
+.view-container{flex:1; overflow-y:auto; padding:22px 26px 60px 26px;}
+
+/* ---------- DASHBOARD ---------- */
+.stat-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:12px; margin-bottom:26px;}
+.stat-card{
+  background:var(--bg-1); border:1px solid var(--border); border-radius:var(--radius-m);
+  padding:16px 14px; position:relative; overflow:hidden;
+}
+.stat-card .sc-bar{position:absolute; left:0; top:0; bottom:0; width:3px;}
+.stat-card .sc-num{font-family:'Sora',sans-serif; font-weight:700; font-size:26px; line-height:1;}
+.stat-card .sc-label{font-size:11px; color:var(--text-2); margin-top:8px; letter-spacing:.2px;}
+
+.section-title{
+  font-family:'Sora',sans-serif; font-weight:700; font-size:13px; letter-spacing:1.2px;
+  text-transform:uppercase; color:var(--text-2); margin:26px 0 12px 0; display:flex; align-items:center; gap:10px;
+}
+.section-title .line{flex:1; height:1px; background:var(--border);}
+.section-title:first-child{margin-top:0;}
+
+.next-actions{display:flex; flex-direction:column; gap:8px;}
+.na-row{
+  display:grid; grid-template-columns:26px 1fr 120px 100px 90px 70px; gap:12px; align-items:center;
+  background:var(--bg-1); border:1px solid var(--border); border-radius:var(--radius-s); padding:11px 14px;
+}
+.na-row:hover{border-color:var(--brass-dim);}
+.na-dot{width:8px; height:8px; border-radius:50%;}
+.na-title{font-size:13px; font-weight:500;}
+.na-sub{font-size:10.5px; color:var(--text-3); margin-top:2px;}
+.na-meta{font-size:11px; color:var(--text-2); font-family:'JetBrains Mono',monospace;}
+.na-empty{color:var(--text-3); font-size:12.5px; padding:20px; text-align:center; background:var(--bg-1); border:1px dashed var(--border); border-radius:var(--radius-m);}
+
+/* ---------- KANBAN ---------- */
+.kanban{display:flex; gap:14px; overflow-x:auto; padding-bottom:20px; align-items:flex-start;}
+.kcol{
+  min-width:270px; max-width:270px; background:var(--bg-1); border:1px solid var(--border);
+  border-radius:var(--radius-m); display:flex; flex-direction:column; max-height:calc(100vh - 200px);
+}
+.kcol.dragover{border-color:var(--brass); background:var(--bg-2);}
+.kcol-head{
+  padding:12px 13px; display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--border); position:sticky; top:0;
+}
+.kcol-title{display:flex; align-items:center; gap:8px; font-weight:700; font-size:12px; letter-spacing:.4px;}
+.kcol-dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+.kcol-count{
+  font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-2);
+  background:var(--bg-2); padding:1px 7px; border-radius:20px; border:1px solid var(--border);
+}
+.kcol-count.warn{color:var(--hoy); border-color:#4a2622;}
+.kcol-body{padding:10px; display:flex; flex-direction:column; gap:9px; overflow-y:auto;}
+.kcol-empty{font-size:11px; color:var(--text-3); text-align:center; padding:18px 6px; border:1px dashed var(--border); border-radius:var(--radius-s);}
+
+.tcard{
+  background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius-s);
+  padding:12px 12px 10px 12px; cursor:grab; transition:border-color .15s, transform .1s;
+}
+.tcard:active{cursor:grabbing;}
+.tcard:hover{border-color:var(--brass-dim);}
+.tcard.dragging{opacity:.4;}
+.tcard-top{display:flex; justify-content:space-between; align-items:flex-start; gap:6px; margin-bottom:6px;}
+.tcard-title{font-size:13px; font-weight:600; line-height:1.35;}
+.tcard-proj{font-size:10px; color:var(--brass); margin-bottom:6px; text-transform:uppercase; letter-spacing:.4px; font-weight:600;}
+.pbadge{
+  font-size:9px; font-weight:700; padding:2px 7px; border-radius:20px; text-transform:uppercase; letter-spacing:.3px;
+  white-space:nowrap; flex-shrink:0; font-family:'JetBrains Mono',monospace;
+}
+.tcard-next{
+  font-size:11px; color:var(--text-2); background:var(--bg-1); border-radius:var(--radius-s);
+  padding:6px 8px; margin:7px 0; line-height:1.4; border-left:2px solid var(--brass-dim);
+}
+.tcard-meta{display:flex; flex-wrap:wrap; gap:6px; font-size:10.5px; color:var(--text-3); margin-bottom:8px;}
+.tcard-meta span{display:flex; align-items:center; gap:4px;}
+.tcard-meta .overdue{color:var(--hoy); font-weight:600;}
+.tcard-wait{
+  font-size:10.5px; color:var(--espera); background:rgba(220,185,63,.08); border:1px solid rgba(220,185,63,.25);
+  padding:5px 7px; border-radius:6px; margin-bottom:8px; line-height:1.4;
+}
+.tcard-actions{display:flex; gap:6px; margin-top:4px;}
+.tcard-actions .btn{flex:1; justify-content:center; padding:6px 8px; font-size:11px;}
+.tcard-done{border-color:#2c4a37; background:#182420; color:#7fce9c;}
+.tcard-done:hover{background:#1e2f27;}
+
+/* ---------- PROJECTS ---------- */
+.proj-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+.proj-card{background:var(--bg-1); border:1px solid var(--border); border-radius:var(--radius-m); padding:18px;}
+.proj-card-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;}
+.proj-name{font-family:'Sora',sans-serif; font-weight:700; font-size:14.5px;}
+.proj-status{font-size:9.5px; padding:2px 8px; border-radius:20px; font-weight:700; text-transform:uppercase; letter-spacing:.3px;}
+.proj-obj{font-size:12px; color:var(--text-2); line-height:1.5; margin:8px 0 14px 0; min-height:36px;}
+.proj-bar-track{height:6px; background:var(--bg-3); border-radius:20px; overflow:hidden; margin-bottom:6px;}
+.proj-bar-fill{height:100%; background:linear-gradient(90deg,var(--brass-dim),var(--brass)); border-radius:20px;}
+.proj-progress-row{display:flex; justify-content:space-between; font-size:11px; color:var(--text-3); margin-bottom:14px;}
+.proj-progress-row b{color:var(--text-1); font-family:'JetBrains Mono',monospace;}
+.proj-foot{display:flex; justify-content:space-between; font-size:11px; color:var(--text-2); border-top:1px solid var(--border); padding-top:11px;}
+.proj-foot .lbl{color:var(--text-3); display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:.4px; margin-bottom:3px;}
+
+/* ---------- CRM ---------- */
+.crm-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px;}
+.crm-card{background:var(--bg-1); border:1px solid var(--border); border-radius:var(--radius-m); padding:16px;}
+.crm-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;}
+.crm-company{font-family:'Sora',sans-serif; font-weight:700; font-size:14px;}
+.crm-contact{font-size:11.5px; color:var(--text-2); margin-top:2px;}
+.crm-state{font-size:9.5px; font-weight:700; padding:3px 8px; border-radius:20px; white-space:nowrap;}
+.crm-row{display:flex; gap:8px; font-size:11.5px; color:var(--text-2); margin-bottom:5px;}
+.crm-row .ic{width:14px; color:var(--text-3); flex-shrink:0;}
+.crm-next{background:var(--bg-2); border-radius:6px; padding:8px 10px; margin-top:10px; font-size:11.5px; color:var(--text-2); border-left:2px solid var(--brass-dim);}
+.crm-actions{display:flex; gap:6px; margin-top:12px;}
+.crm-actions .btn{flex:1; justify-content:center;}
+
+/* ---------- CALENDAR ---------- */
+.cal-head{display:flex; align-items:center; gap:14px; margin-bottom:16px;}
+.cal-month{font-family:'Sora',sans-serif; font-weight:700; font-size:16px; min-width:170px;}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px;}
+.cal-dow{font-size:10px; color:var(--text-3); text-transform:uppercase; letter-spacing:.6px; text-align:center; padding-bottom:4px;}
+.cal-cell{
+  background:var(--bg-1); border:1px solid var(--border); border-radius:var(--radius-s);
+  min-height:96px; padding:7px; display:flex; flex-direction:column; gap:4px;
+}
+.cal-cell.other{opacity:.35;}
+.cal-cell.today{border-color:var(--brass);}
+.cal-daynum{font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--text-2); font-weight:600;}
+.cal-evt{
+  font-size:9.5px; padding:2px 5px; border-radius:4px; line-height:1.3; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; font-weight:600;
+}
+
+/* ---------- MODAL ---------- */
+.overlay{
+  position:fixed; inset:0; background:rgba(6,7,10,.65); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; z-index:100; padding:24px;
+}
+.overlay.open{display:flex;}
+.modal{
+  background:var(--bg-1); border:1px solid var(--border); border-radius:var(--radius-l);
+  width:100%; max-width:560px; max-height:88vh; display:flex; flex-direction:column; box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.modal-head{padding:18px 22px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;}
+.modal-head h3{font-family:'Sora',sans-serif; font-size:15.5px; font-weight:700;}
+.modal-close{cursor:pointer; color:var(--text-3); font-size:18px; line-height:1; padding:4px;}
+.modal-close:hover{color:var(--text-1);}
+.modal-body{padding:20px 22px; overflow-y:auto; display:flex; flex-direction:column; gap:13px;}
+.modal-foot{padding:16px 22px; border-top:1px solid var(--border); display:flex; justify-content:space-between; gap:10px;}
+.form-row{display:flex; gap:12px;}
+.form-group{flex:1; display:flex; flex-direction:column; gap:5px;}
+.form-group label{font-size:10.5px; color:var(--text-3); text-transform:uppercase; letter-spacing:.5px; font-weight:600;}
+.form-group input, .form-group select, .form-group textarea{
+  background:var(--bg-2); border:1px solid var(--border); color:var(--text-1);
+  padding:9px 11px; border-radius:var(--radius-s); font-size:13px; font-family:'Inter',sans-serif; width:100%;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus{outline:none; border-color:var(--brass-dim);}
+.form-group textarea{resize:vertical; min-height:56px; font-family:'Inter',sans-serif;}
+
+/* toast */
+.toast{
+  position:fixed; bottom:22px; right:22px; background:var(--bg-2); border:1px solid var(--brass-dim);
+  color:var(--text-1); padding:12px 18px; border-radius:var(--radius-s); font-size:12.5px; z-index:200;
+  display:flex; align-items:center; gap:10px; transform:translateY(20px); opacity:0; transition:all .25s; box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.toast.show{transform:translateY(0); opacity:1;}
+
+.empty-state{text-align:center; padding:60px 20px; color:var(--text-3);}
+.empty-state .es-ic{font-size:34px; margin-bottom:10px;}
+
+/* ---------- MENTOR IA ---------- */
+.btn-mentor{
+  background:linear-gradient(135deg, rgba(201,162,75,.16), rgba(201,162,75,.05));
+  border-color:var(--brass-dim); color:var(--brass);
+}
+.btn-mentor:hover{background:linear-gradient(135deg, rgba(201,162,75,.26), rgba(201,162,75,.08));}
+.btn-icon{flex:0 0 auto !important; width:34px; padding:6px 0 !important; justify-content:center;}
+.proj-actions{margin-top:12px; display:flex; gap:8px;}
+.mentor-link{
+  display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--brass);
+  cursor:pointer; padding:8px 10px; border:1px dashed var(--brass-dim); border-radius:var(--radius-s);
+  background:rgba(201,162,75,.06);
+}
+.mentor-link:hover{background:rgba(201,162,75,.12);}
+.mentor-modal{max-width:520px;}
+.mentor-meta{font-size:10.5px; color:var(--text-3); padding:0 22px 6px 22px; font-family:'JetBrains Mono',monospace;}
+.mentor-content{padding:2px 0;}
+.mentor-content h4{
+  color:var(--brass); font-size:11px; text-transform:uppercase; letter-spacing:.7px;
+  margin:16px 0 7px 0; font-family:'Sora',sans-serif; font-weight:700;
+}
+.mentor-content h4:first-child{margin-top:0;}
+.mentor-content p{font-size:13px; color:var(--text-2); line-height:1.65; margin-bottom:9px;}
+.mentor-content ul{margin:0 0 9px 18px; display:flex; flex-direction:column; gap:6px;}
+.mentor-content li{font-size:13px; color:var(--text-2); line-height:1.55;}
+.mentor-content b{color:var(--text-1); font-weight:600;}
+.mentor-loading{display:flex; align-items:center; gap:10px; color:var(--text-2); font-size:13px; padding:14px 0;}
+.mentor-loading .dot{width:7px; height:7px; border-radius:50%; background:var(--brass); animation:mpulse 1.1s infinite ease-in-out;}
+.mentor-loading .dot:nth-child(2){animation-delay:.15s;}
+.mentor-loading .dot:nth-child(3){animation-delay:.3s;}
+@keyframes mpulse{0%,80%,100%{opacity:.25; transform:scale(.8);} 40%{opacity:1; transform:scale(1);}}
+.mentor-error{color:var(--hoy); font-size:12.5px; padding:10px 0;}
+
+@media (max-width:1100px){
+  .stat-grid{grid-template-columns:repeat(4,1fr);}
+  .proj-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">IW</div>
+      <div class="brand-text">
+        <div class="t1">I-WORK</div>
+        <div class="t2">COMMAND CENTER</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-item" data-view="dashboard"><span class="ic">◆</span> Dashboard</div>
+      <div class="nav-item" data-view="kanban"><span class="ic">▤</span> Project Manager</div>
+      <div class="nav-item" data-view="projects"><span class="ic">◇</span> Proyectos</div>
+      <div class="nav-item" data-view="crm"><span class="ic">☰</span> Clientes / CRM</div>
+      <div class="nav-item" data-view="calendar"><span class="ic">▦</span> Calendario</div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="label">Estado del sistema</div>
+      <div class="mini-stat"><span>Tareas activas</span><b id="mini-active">0</b></div>
+      <div class="mini-stat"><span>Atrasadas</span><b id="mini-overdue" style="color:var(--hoy)">0</b></div>
+      <div class="mini-stat"><span>Proyectos</span><b id="mini-projects">0</b></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="view-title" id="view-title">Dashboard</div>
+      <div class="search-wrap">
+        <span class="sic">⌕</span>
+        <input type="text" id="global-search" placeholder="Buscar tareas, proyectos, clientes...">
+      </div>
+      <div class="btn filter-toggle" id="filter-toggle-btn">Filtros <span class="filter-badge" id="filter-count" style="display:none">0</span></div>
+      <div class="topbar-right">
+        <div class="btn btn-mentor" id="new-idea-btn">💡 Nueva idea</div>
+        <div class="btn btn-primary" id="new-task-btn">+ Nueva tarea</div>
+      </div>
+    </div>
+
+    <div class="ticker mono" id="ticker"></div>
+    <div class="filter-panel" id="filter-panel"></div>
+
+    <div class="view-container" id="view-container"></div>
+  </div>
+</div>
+
+<div class="overlay" id="task-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="task-modal-title">Nueva tarea</h3>
+      <div class="modal-close" data-close="task-overlay">✕</div>
+    </div>
+    <div class="modal-body" id="task-form"></div>
+    <div class="modal-foot">
+      <div class="btn btn-danger-line" id="task-delete-btn" style="display:none">Eliminar</div>
+      <div style="flex:1"></div>
+      <div class="btn btn-ghost" data-close="task-overlay">Cancelar</div>
+      <div class="btn btn-primary" id="task-save-btn">Guardar tarea</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="client-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="client-modal-title">Nuevo cliente</h3>
+      <div class="modal-close" data-close="client-overlay">✕</div>
+    </div>
+    <div class="modal-body" id="client-form"></div>
+    <div class="modal-foot">
+      <div class="btn btn-danger-line" id="client-delete-btn" style="display:none">Eliminar</div>
+      <div style="flex:1"></div>
+      <div class="btn btn-ghost" data-close="client-overlay">Cancelar</div>
+      <div class="btn btn-primary" id="client-save-btn">Guardar cliente</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="mentor-overlay">
+  <div class="modal mentor-modal">
+    <div class="modal-head">
+      <h3 id="mentor-title">💡 Mentor IA</h3>
+      <div class="modal-close" data-close="mentor-overlay">✕</div>
+    </div>
+    <div class="mentor-meta" id="mentor-meta"></div>
+    <div class="modal-body" id="mentor-content"></div>
+    <div class="modal-foot">
+      <div class="btn btn-ghost" id="mentor-regenerate-btn">🔄 Regenerar ideas</div>
+      <div style="flex:1"></div>
+      <div class="btn btn-ghost" data-close="mentor-overlay">Cerrar</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="idea-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>💡 Convertir idea en proyecto</h3>
+      <div class="modal-close" data-close="idea-overlay">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tu idea, tal como se te ocurrió</label>
+        <textarea id="idea-input" placeholder="Escribe aquí lo que se te acaba de ocurrir. No te preocupes por el orden ni la redacción — el sistema la organiza por ti." style="min-height:170px"></textarea>
+      </div>
+      <div id="idea-status" style="display:none"></div>
+    </div>
+    <div class="modal-foot">
+      <div style="flex:1"></div>
+      <div class="btn btn-ghost" data-close="idea-overlay">Cancelar</div>
+      <div class="btn btn-primary" id="idea-generate-btn">🧠 Generar proyecto</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   I-WORK COMMAND CENTER — motor de aplicación
+   ============================================================ */
+
+const STATUS = {
+  hoy:       {label:'HOY',            color:'var(--hoy)',       icon:'🔴'},
+  semana:    {label:'ESTA SEMANA',    color:'var(--semana)',    icon:'🟠'},
+  curso:     {label:'EN CURSO',       color:'var(--curso)',     icon:'🔵'},
+  espera:    {label:'EN ESPERA',      color:'var(--espera)',    icon:'🟡'},
+  terminado: {label:'TERMINADO',      color:'var(--terminado)', icon:'🟢'},
+  backlog:   {label:'BACKLOG',        color:'var(--backlog)',   icon:'⚫'},
+};
+const KCOLS = ['hoy','semana','curso','espera','terminado','backlog'];
+
+const PRIORITY = {
+  critica:{label:'Crítica', color:'var(--critica)'},
+  alta:{label:'Alta', color:'var(--alta)'},
+  media:{label:'Media', color:'var(--media)'},
+  baja:{label:'Baja', color:'var(--baja)'},
+};
+
+const CLIENT_STATES = {
+  prospecto:{label:'Prospecto', icon:'🟢', color:'#45A66E'},
+  contactado:{label:'Contactado', icon:'🔵', color:'#4A8FCB'},
+  reunion:{label:'Reunión', icon:'🟡', color:'#DCB93F'},
+  propuesta:{label:'Propuesta', icon:'🟠', color:'#E29245'},
+  negociacion:{label:'Negociación', icon:'🟣', color:'#9B6FD1'},
+  cliente:{label:'Cliente', icon:'✅', color:'#45A66E'},
+  perdido:{label:'Perdido', icon:'🔴', color:'#E15A4C'},
+};
+
+let state = {
+  tasks: [],
+  projects: [],
+  clients: [],
+  view: 'dashboard',
+  search: '',
+  filters: {project:'', client:'', priority:'', status:'', responsible:''},
+  editingTaskId: null,
+  editingClientId: null,
+  calMonth: new Date().getMonth(),
+  calYear: new Date().getFullYear(),
+};
+
+function uid(prefix){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
+function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function addDaysISO(n){ const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso+'T00:00:00');
+  return d.toLocaleDateString('es-CO',{day:'2-digit',month:'short'});
+}
+function isOverdue(t){
+  return t.dueDate && t.status!=='terminado' && t.dueDate < todayISO();
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------- SEED DATA ---------------- */
+function seedData(){
+  const projects = [
+    {id:'sp', name:'SOLVITA PRO', objective:'Implementar una ruta de transformación hacia el trabajo inteligente mediante IA.', status:'activo', targetDate:addDaysISO(90), nextMilestone:'Presentar propuesta ejecutiva de implementación'},
+    {id:'iw', name:'I-WORK', objective:'Construir el primer Centro de Experiencia para potenciar humanos hacia el trabajo flexible mediante IA y desarrollar el modelo BIFLEX.', status:'activo', targetDate:addDaysISO(120), nextMilestone:'Lanzar sitio web y manifiesto I-WORK'},
+    {id:'bc', name:'BOOTCAMP AI TALENT HUNTER', objective:'Crear un Bootcamp de selección y caza de talento utilizando IA.', status:'activo', targetDate:addDaysISO(60), nextMilestone:'Cerrar temario definitivo con la aliada'},
+    {id:'md', name:'MEDELLÍN / EXPERIENCIA IA', objective:'Crear una experiencia empresarial de IA junto con Solvita Pro.', status:'activo', targetDate:addDaysISO(75), nextMilestone:'Confirmar empresas invitadas'},
+    {id:'al', name:'ALIANZAS ESTRATÉGICAS', objective:'Construir alianzas para expandir I-WORK y su Centro de Experiencia.', status:'activo', targetDate:addDaysISO(150), nextMilestone:'Presentar propuesta de alianza a WorkX / SSON'},
+    {id:'cc', name:'CRECIMIENTO COMERCIAL', objective:'Mantener un pipeline permanente de prospectos, reuniones y ventas.', status:'activo', targetDate:addDaysISO(365), nextMilestone:'Pipeline actualizado semanalmente'},
+  ];
+
+  const T = (title,project,priority,status,nextStep,extra={}) => ({
+    id:uid('t'), title, project, priority, status, nextStep,
+    description:extra.description||'', responsible:extra.responsible||'Yo',
+    client:extra.client||'', dueDate:extra.dueDate||'', dependencies:extra.dependencies||'',
+    notes:extra.notes||'', waitingFor:extra.waitingFor||'', waitingSince:extra.waitingSince||'',
+    nextFollowUp:extra.nextFollowUp||'', completedDate:extra.completedDate||'', createdAt:todayISO(),
+  });
+
+  const tasks = [
+    // SOLVITA PRO
+    T('Esperar diligenciamiento del diagnóstico comercial','sp','alta','espera','Enviar recordatorio al área comercial de Solvita.',{client:'Solvita Pro',waitingFor:'Área comercial de Solvita',waitingSince:addDaysISO(-6),nextFollowUp:addDaysISO(2)}),
+    T('Revisar respuestas del diagnóstico','sp','alta','backlog','Leer y clasificar las respuestas recibidas del diagnóstico.',{client:'Solvita Pro',dueDate:addDaysISO(6)}),
+    T('Validar flujo del área jurídica','sp','media','backlog','Agendar sesión con el área jurídica de Solvita.',{client:'Solvita Pro',dueDate:addDaysISO(10)}),
+    T('Analizar oportunidades de automatización','sp','media','backlog','Listar procesos candidatos a automatización.',{client:'Solvita Pro'}),
+    T('Diseñar arquitectura de solución','sp','media','backlog','Bosquejar el diagrama de arquitectura de la solución.',{client:'Solvita Pro'}),
+    T('Evaluar Claude','sp','media','curso','Probar Claude en un caso real de Solvita.',{client:'Solvita Pro'}),
+    T('Evaluar Virtual Scale','sp','baja','backlog','Agendar demo con Virtual Scale.',{client:'Solvita Pro'}),
+    T('Evaluar agentes de WhatsApp','sp','baja','backlog','Comparar 2 proveedores de agentes de WhatsApp.',{client:'Solvita Pro'}),
+    T('Evaluar automatización de respuestas','sp','baja','backlog','Definir criterios de evaluación de respuestas automáticas.',{client:'Solvita Pro'}),
+    T('Evaluar automatización de citas','sp','baja','backlog','Probar un flujo de agendamiento automático.',{client:'Solvita Pro'}),
+    T('Evaluar seguimiento automático','sp','baja','backlog','Diseñar flujo de seguimiento automático de leads.',{client:'Solvita Pro'}),
+    T('Diseñar propuesta de implementación I-WORK','sp','alta','semana','Redactar el borrador de la propuesta de implementación.',{client:'Solvita Pro',dueDate:addDaysISO(4)}),
+    T('Crear presentación ejecutiva','sp','alta','semana','Construir el deck ejecutivo en Claude.',{client:'Solvita Pro',dueDate:addDaysISO(5)}),
+    T('Definir inversión inicial','sp','media','backlog','Calcular el monto de inversión inicial propuesto.',{client:'Solvita Pro'}),
+    T('Definir modelo mensual','sp','media','backlog','Definir el modelo de cobro mensual recurrente.',{client:'Solvita Pro'}),
+    T('Preparar ruta de implementación','sp','media','backlog','Esbozar el cronograma de implementación por fases.',{client:'Solvita Pro'}),
+
+    // I-WORK
+    T('Pulir manifiesto I-WORK','iw','alta','hoy','Editar y cerrar la versión final del manifiesto.',{dueDate:todayISO()}),
+    T('Definir concepto BIFLEX','iw','alta','curso','Escribir la definición formal del modelo BIFLEX.'),
+    T('Definir propuesta de valor','iw','media','backlog','Redactar la propuesta de valor en una frase.'),
+    T('Definir posicionamiento','iw','media','backlog','Definir el territorio de posicionamiento de marca.'),
+    T('Diseñar arquitectura del sitio web','iw','media','semana','Mapear el sitemap del sitio web.',{dueDate:addDaysISO(3)}),
+    T('Crear sitio web en Claude','iw','media','backlog','Construir la primera versión del sitio en Claude.'),
+    T('Definir Centro de Experiencia','iw','media','backlog','Describir el formato del Centro de Experiencia.'),
+    T('Definir experiencias para empresas','iw','baja','backlog','Listar 3 experiencias piloto para empresas.'),
+    T('Definir experiencias para profesionales','iw','baja','backlog','Listar 3 experiencias piloto para profesionales.'),
+    T('Crear sección de casos','iw','baja','backlog','Redactar el primer caso de éxito.'),
+    T('Crear sección de partners','iw','baja','backlog','Diseñar la sección de partners del sitio.'),
+    T('Crear narrativa para futuras alianzas','iw','baja','backlog','Escribir el pitch de alianzas de una página.'),
+
+    // BOOTCAMP
+    T('Esperar comentarios de la aliada','bc','alta','espera','Escribir a la aliada solicitando comentarios del temario.',{waitingFor:'Aliada del Bootcamp',waitingSince:addDaysISO(-4),nextFollowUp:addDaysISO(3)}),
+    T('Revisar modificaciones del temario','bc','media','backlog','Incorporar los cambios sugeridos al temario.'),
+    T('Definir temario definitivo','bc','media','backlog','Cerrar la versión final del temario.'),
+    T('Definir responsabilidades','bc','media','backlog','Repartir responsabilidades entre I-WORK y la aliada.'),
+    T('Definir modelo económico','bc','media','backlog','Definir el reparto económico del bootcamp.'),
+    T('Crear landing page','bc','baja','backlog','Diseñar la landing page de inscripción.'),
+    T('Definir fecha','bc','baja','backlog','Elegir y confirmar la fecha de inicio.'),
+    T('Preparar materiales','bc','baja','backlog','Listar los materiales necesarios para el bootcamp.'),
+
+    // MEDELLÍN
+    T('Hablar con María Eugenia','md','alta','hoy','Llamar a María Eugenia para coordinar la propuesta.',{client:'María Eugenia',dueDate:todayISO()}),
+    T('Proponer experiencia de IA','md','alta','semana','Enviar propuesta formal de la experiencia de IA.',{client:'María Eugenia',dueDate:addDaysISO(4)}),
+    T('Definir objetivo','md','media','backlog','Redactar el objetivo de la experiencia en Medellín.'),
+    T('Definir empresas invitadas','md','media','backlog','Elaborar la lista de empresas a invitar.'),
+    T('Diseñar experiencia','md','media','backlog','Diseñar la agenda de la experiencia.'),
+    T('Preparar presentación','md','baja','backlog','Construir la presentación de la experiencia.'),
+    T('Documentar resultados','md','baja','backlog','Definir cómo se documentarán los resultados.'),
+    T('Obtener evidencia y testimonios','md','baja','backlog','Planear la recolección de testimonios en vivo.'),
+
+    // ALIANZAS
+    T('Investigar WorkX / SSON','al','media','curso','Recopilar información pública de WorkX y SSON.'),
+    T('Preparar propuesta de alianza','al','alta','semana','Redactar el primer borrador de la propuesta de alianza.',{dueDate:addDaysISO(6)}),
+    T('Construir evidencia de experiencias I-WORK','al','media','backlog','Recopilar evidencia de experiencias anteriores.'),
+    T('Preparar presentación institucional','al','media','backlog','Diseñar el deck institucional de I-WORK.'),
+    T('Proponer programa periódico de experiencias','al','baja','backlog','Bosquejar un calendario trimestral de experiencias.'),
+    T('Explorar relación con espacios de trabajo flexible','al','baja','backlog','Listar 3 espacios de coworking a contactar.'),
+    T('Preparar expansión internacional','al','baja','backlog','Identificar el primer país objetivo de expansión.'),
+
+    // CRECIMIENTO COMERCIAL
+    T('Buscar prospectos mediante Apollo','cc','media','curso','Ejecutar una búsqueda semanal de prospectos en Apollo.'),
+    T('Identificar empresas objetivo','cc','media','backlog','Definir el perfil de empresa objetivo (ICP).'),
+    T('Contactar prospectos','cc','alta','semana','Enviar mensajes de primer contacto a 10 prospectos.',{dueDate:addDaysISO(2)}),
+    T('Hacer seguimiento','cc','media','curso','Revisar y responder el pipeline de seguimiento.'),
+    T('Publicar contenido en LinkedIn','cc','baja','backlog','Escribir y programar el próximo post de LinkedIn.'),
+    T('Crear propuestas','cc','media','backlog','Preparar plantilla reutilizable de propuesta comercial.'),
+    T('Agendar reuniones','cc','media','backlog','Coordinar agenda de reuniones comerciales de la semana.'),
+    T('Vender implementaciones de IA','cc','alta','backlog','Cerrar la primera venta de implementación de IA del mes.'),
+    T('Mantener pipeline actualizado','cc','baja','curso','Actualizar el estado de cada prospecto en el pipeline.'),
+  ];
+
+  const clients = [
+    {id:uid('c'), company:'Solvita Pro', contact:'Equipo Comercial', role:'Dirección Comercial', email:'', phone:'', project:'sp', status:'negociacion', nextAction:'Enviar propuesta de implementación I-WORK', followUpDate:addDaysISO(4), notes:'Cliente ancla del proyecto Solvita Pro.'},
+    {id:uid('c'), company:'Aliada Bootcamp AI Talent Hunter', contact:'Por definir', role:'Aliada estratégica', email:'', phone:'', project:'bc', status:'reunion', nextAction:'Esperar comentarios sobre el temario', followUpDate:addDaysISO(3), notes:''},
+    {id:uid('c'), company:'María Eugenia — Medellín', contact:'María Eugenia', role:'Contacto local', email:'', phone:'', project:'md', status:'contactado', nextAction:'Coordinar propuesta de experiencia de IA', followUpDate:todayISO(), notes:''},
+  ];
+
+  return {tasks, projects, clients};
+}
+
+/* ---------------- PERSISTENCIA (localStorage del navegador) ---------------- */
+async function loadState(){
+  try{
+    const raw = localStorage.getItem('iwork-data');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state.tasks = parsed.tasks || [];
+      state.projects = parsed.projects || [];
+      state.clients = parsed.clients || [];
+      return;
+    }
+  }catch(e){ /* no existe aún o está corrupto */ }
+  const seed = seedData();
+  state.tasks = seed.tasks;
+  state.projects = seed.projects;
+  state.clients = seed.clients;
+  await persist();
+}
+let saveTimer=null;
+async function persist(){
+  clearTimeout(saveTimer);
+  return new Promise(resolve=>{
+    saveTimer = setTimeout(()=>{
+      try{
+        localStorage.setItem('iwork-data', JSON.stringify({tasks:state.tasks, projects:state.projects, clients:state.clients}));
+      }catch(e){ console.error('Error guardando datos', e); }
+      resolve();
+    }, 150);
+  });
+}
+
+/* ---------------- TOAST ---------------- */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+/* ---------------- AUTOMATIZACIONES ---------------- */
+function markDone(id){
+  const t = state.tasks.find(x=>x.id===id);
+  if(!t) return;
+  t.status = 'terminado';
+  t.completedDate = todayISO();
+  checkProjectCompletion(t.project);
+  persist(); render();
+  toast('✓ Tarea marcada como hecha');
+}
+function reopenTask(id){
+  const t = state.tasks.find(x=>x.id===id);
+  if(!t) return;
+  t.status = 'backlog';
+  t.completedDate = '';
+  const p = state.projects.find(pr=>pr.id===t.project);
+  if(p && p.status==='completado') p.status='activo';
+  persist(); render();
+  toast('↩ Tarea reabierta');
+}
+function checkProjectCompletion(projectId){
+  const p = state.projects.find(pr=>pr.id===projectId);
+  if(!p) return;
+  const ts = state.tasks.filter(t=>t.project===projectId);
+  if(ts.length && ts.every(t=>t.status==='terminado')) p.status='completado';
+  else if(p.status==='completado') p.status='activo';
+}
+function deleteTask(id){
+  state.tasks = state.tasks.filter(t=>t.id!==id);
+  persist(); render();
+  toast('Tarea eliminada');
+}
+function deleteClient(id){
+  state.clients = state.clients.filter(c=>c.id!==id);
+  persist(); render();
+  toast('Cliente eliminado');
+}
+
+/* ---------------- FILTROS / BÚSQUEDA ---------------- */
+function projectName(id){ const p=state.projects.find(p=>p.id===id); return p?p.name:id; }
+
+function applyFilters(list){
+  const f = state.filters, q = state.search.trim().toLowerCase();
+  return list.filter(t=>{
+    if(f.project && t.project!==f.project) return false;
+    if(f.priority && t.priority!==f.priority) return false;
+    if(f.status && t.status!==f.status) return false;
+    if(f.responsible && t.responsible!==f.responsible) return false;
+    if(f.client && t.client!==f.client) return false;
+    if(q){
+      const hay = (t.title+' '+projectName(t.project)+' '+(t.client||'')+' '+(t.responsible||'')+' '+(t.nextStep||'')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+function activeFilterCount(){
+  return Object.values(state.filters).filter(Boolean).length;
+}
+
+/* ---------------- RENDER: SHELL ---------------- */
+function renderNav(){
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.view===state.view);
+  });
+  const titles = {dashboard:'Dashboard', kanban:'Project Manager', projects:'Proyectos', crm:'Clientes / CRM', calendar:'Calendario'};
+  document.getElementById('view-title').textContent = titles[state.view];
+}
+
+function renderTicker(){
+  const t = state.tasks;
+  const active = t.filter(x=>x.status!=='terminado').length;
+  const overdue = t.filter(isOverdue).length;
+  const today = t.filter(x=>x.status==='hoy').length;
+  const curso = t.filter(x=>x.status==='curso').length;
+  const espera = t.filter(x=>x.status==='espera').length;
+  const done = t.filter(x=>x.status==='terminado').length;
+  const items = [
+    ['hoy', 'Hoy', today],
+    ['curso', 'En curso', curso],
+    ['espera', 'En espera', espera],
+    ['terminado', 'Completadas', done],
+    ['hoy', 'Atrasadas', overdue],
+  ];
+  const html = items.map(([key,label,val],i)=>{
+    const color = key==='hoy'&&label==='Atrasadas' ? 'var(--hoy)' : `var(--${key})`;
+    return `<div class="ticker-item"><span class="ticker-dot" style="background:${color}"></span>${label} <b>${val}</b></div>` + (i<items.length-1?'<div class="ticker-sep"></div>':'');
+  }).join('');
+  document.getElementById('ticker').innerHTML = `<div class="ticker-item">TAREAS ACTIVAS <b>${active}</b></div><div class="ticker-sep"></div>` + html;
+
+  document.getElementById('mini-active').textContent = active;
+  document.getElementById('mini-overdue').textContent = overdue;
+  document.getElementById('mini-projects').textContent = state.projects.filter(p=>p.status!=='completado').length;
+}
+
+function renderFilterPanel(){
+  const panel = document.getElementById('filter-panel');
+  const responsibles = [...new Set(state.tasks.map(t=>t.responsible).filter(Boolean))];
+  const clients = [...new Set(state.tasks.map(t=>t.client).filter(Boolean))];
+  panel.innerHTML = `
+    <span class="fp-label">Proyecto</span>
+    <select id="f-project"><option value="">Todos</option>${state.projects.map(p=>`<option value="${p.id}" ${state.filters.project===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('')}</select>
+    <span class="fp-label">Cliente</span>
+    <select id="f-client"><option value="">Todos</option>${clients.map(c=>`<option value="${escapeHtml(c)}" ${state.filters.client===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
+    <span class="fp-label">Prioridad</span>
+    <select id="f-priority"><option value="">Todas</option>${Object.entries(PRIORITY).map(([k,v])=>`<option value="${k}" ${state.filters.priority===k?'selected':''}>${v.label}</option>`).join('')}</select>
+    <span class="fp-label">Estado</span>
+    <select id="f-status"><option value="">Todos</option>${KCOLS.map(k=>`<option value="${k}" ${state.filters.status===k?'selected':''}>${STATUS[k].icon} ${STATUS[k].label}</option>`).join('')}</select>
+    <span class="fp-label">Responsable</span>
+    <select id="f-responsible"><option value="">Todos</option>${responsibles.map(r=>`<option value="${escapeHtml(r)}" ${state.filters.responsible===r?'selected':''}>${escapeHtml(r)}</option>`).join('')}</select>
+    <div class="btn btn-ghost btn-sm" id="f-clear">Limpiar filtros</div>
+  `;
+  panel.querySelectorAll('select').forEach(sel=>{
+    sel.addEventListener('change', ()=>{
+      const map = {'f-project':'project','f-client':'client','f-priority':'priority','f-status':'status','f-responsible':'responsible'};
+      state.filters[map[sel.id]] = sel.value;
+      renderTopControls(); render();
+    });
+  });
+  document.getElementById('f-clear').addEventListener('click', ()=>{
+    state.filters = {project:'', client:'', priority:'', status:'', responsible:''};
+    renderTopControls(); render();
+  });
+}
+function renderTopControls(){
+  const c = activeFilterCount();
+  const badge = document.getElementById('filter-count');
+  badge.style.display = c ? 'flex' : 'none';
+  badge.textContent = c;
+}
+
+/* ---------------- RENDER: DASHBOARD ---------------- */
+function renderDashboard(){
+  const t = state.tasks;
+  const stats = [
+    {label:'Proyectos activos', val: state.projects.filter(p=>p.status!=='completado').length, color:'brass'},
+    {label:'Tareas pendientes', val: t.filter(x=>x.status!=='terminado').length, color:'curso'},
+    {label:'Para hoy', val: t.filter(x=>x.status==='hoy').length, color:'hoy'},
+    {label:'En curso', val: t.filter(x=>x.status==='curso').length, color:'curso'},
+    {label:'En espera', val: t.filter(x=>x.status==='espera').length, color:'espera'},
+    {label:'Completadas', val: t.filter(x=>x.status==='terminado').length, color:'terminado'},
+    {label:'Atrasadas', val: t.filter(isOverdue).length, color:'hoy'},
+  ];
+  const statCards = stats.map(s=>`
+    <div class="stat-card">
+      <div class="sc-bar" style="background:var(--${s.color})"></div>
+      <div class="sc-num">${s.val}</div>
+      <div class="sc-label">${s.label}</div>
+    </div>`).join('');
+
+  const upcoming = applyFilters(t)
+    .filter(x=>x.status!=='terminado')
+    .sort((a,b)=>{
+      const rank = {hoy:0, semana:1, curso:2, espera:3, backlog:4};
+      const pr = {critica:0,alta:1,media:2,baja:3};
+      if(isOverdue(a)!==isOverdue(b)) return isOverdue(a)?-1:1;
+      if(rank[a.status]!==rank[b.status]) return rank[a.status]-rank[b.status];
+      return pr[a.priority]-pr[b.priority];
+    })
+    .slice(0,8);
+
+  const rows = upcoming.length ? upcoming.map(x=>`
+    <div class="na-row" data-open-task="${x.id}">
+      <span class="na-dot" style="background:${STATUS[x.status].color}"></span>
+      <div>
+        <div class="na-title">${escapeHtml(x.title)}</div>
+        <div class="na-sub">${escapeHtml(projectName(x.project))}${x.client?' · '+escapeHtml(x.client):''}</div>
+      </div>
+      <div class="pbadge" style="background:${PRIORITY[x.priority].color}22; color:${PRIORITY[x.priority].color}; border:1px solid ${PRIORITY[x.priority].color}55">${PRIORITY[x.priority].label}</div>
+      <div class="na-meta ${isOverdue(x)?'overdue':''}">${x.dueDate?fmtDate(x.dueDate):'Sin fecha'}</div>
+      <div class="na-meta">${STATUS[x.status].icon} ${STATUS[x.status].label}</div>
+      <div class="btn btn-sm tcard-done" data-done="${x.id}">✓ Hecha</div>
+    </div>`).join('') : `<div class="na-empty">No hay tareas pendientes que coincidan con los filtros actuales.</div>`;
+
+  document.getElementById('view-container').innerHTML = `
+    <div class="stat-grid">${statCards}</div>
+    <div class="section-title">Próximas acciones<div class="line"></div></div>
+    <div class="next-actions">${rows}</div>
+  `;
+}
+
+/* ---------------- RENDER: KANBAN ---------------- */
+function taskCardHtml(t){
+  const overdue = isOverdue(t);
+  const p = PRIORITY[t.priority];
+  return `
+  <div class="tcard" draggable="true" data-id="${t.id}">
+    <div class="tcard-top">
+      <div class="tcard-title">${escapeHtml(t.title)}</div>
+      <div class="pbadge" style="background:${p.color}22; color:${p.color}; border:1px solid ${p.color}55">${p.label}</div>
+    </div>
+    <div class="tcard-proj">${escapeHtml(projectName(t.project))}</div>
+    ${t.status==='espera' ? `<div class="tcard-wait">Esperando a: <b>${escapeHtml(t.waitingFor||'—')}</b><br>Desde: ${fmtDate(t.waitingSince)} · Seguimiento: ${fmtDate(t.nextFollowUp)}</div>` : ''}
+    ${t.nextStep ? `<div class="tcard-next">➜ ${escapeHtml(t.nextStep)}</div>` : ''}
+    <div class="tcard-meta">
+      ${t.dueDate ? `<span class="${overdue?'overdue':''}">${overdue?'⚠ ATRASADA · ':'📅 '}${fmtDate(t.dueDate)}</span>` : ''}
+      ${t.responsible ? `<span>👤 ${escapeHtml(t.responsible)}</span>` : ''}
+      ${t.client ? `<span>🏢 ${escapeHtml(t.client)}</span>` : ''}
+    </div>
+    <div class="tcard-actions">
+      ${t.status==='terminado'
+        ? `<div class="btn btn-sm" data-reopen="${t.id}">↩ Reabrir</div>`
+        : `<div class="btn btn-sm tcard-done" data-done="${t.id}">✓ Hecha</div>`}
+      <div class="btn btn-sm" data-edit="${t.id}">✏️ Editar</div>
+      <div class="btn btn-sm btn-icon btn-mentor" data-mentor-task="${t.id}" title="Mentor IA">💡</div>
+    </div>
+  </div>`;
+}
+
+function renderKanban(){
+  const filtered = applyFilters(state.tasks);
+  const cols = KCOLS.map(colKey=>{
+    const items = filtered.filter(t=>t.status===colKey);
+    const s = STATUS[colKey];
+    const warn = colKey==='hoy' && items.length>3;
+    return `
+    <div class="kcol" data-col="${colKey}">
+      <div class="kcol-head">
+        <div class="kcol-title"><span class="kcol-dot" style="background:${s.color}"></span>${s.icon} ${s.label}</div>
+        <div class="kcol-count ${warn?'warn':''}">${items.length}${colKey==='hoy'?'/3':''}</div>
+      </div>
+      <div class="kcol-body" data-col-body="${colKey}">
+        ${items.length ? items.map(taskCardHtml).join('') : '<div class="kcol-empty">Sin tareas</div>'}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('view-container').innerHTML = `<div class="kanban">${cols}</div>`;
+  attachDragEvents();
+}
+
+function attachDragEvents(){
+  document.querySelectorAll('.tcard').forEach(card=>{
+    card.addEventListener('dragstart', e=>{
+      card.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+    });
+    card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
+  });
+  document.querySelectorAll('.kcol').forEach(col=>{
+    col.addEventListener('dragover', e=>{ e.preventDefault(); col.classList.add('dragover'); });
+    col.addEventListener('dragleave', ()=> col.classList.remove('dragover'));
+    col.addEventListener('drop', e=>{
+      e.preventDefault();
+      col.classList.remove('dragover');
+      const id = e.dataTransfer.getData('text/plain');
+      const t = state.tasks.find(x=>x.id===id);
+      if(!t) return;
+      const newStatus = col.dataset.col;
+      if(newStatus==='hoy'){
+        const count = state.tasks.filter(x=>x.status==='hoy' && x.id!==id).length;
+        if(count>=3) toast('⚠ Ya hay 3 tareas en HOY. Considera priorizar.');
+      }
+      t.status = newStatus;
+      if(newStatus==='terminado'){ t.completedDate = todayISO(); checkProjectCompletion(t.project); }
+      else if(t.completedDate){ t.completedDate=''; checkProjectCompletion(t.project); }
+      persist(); render();
+    });
+  });
+}
+
+/* ---------------- RENDER: PROJECTS ---------------- */
+function renderProjects(){
+  const cards = state.projects.map(p=>{
+    const ts = state.tasks.filter(t=>t.project===p.id);
+    const done = ts.filter(t=>t.status==='terminado').length;
+    const pct = ts.length ? Math.round(done/ts.length*100) : 0;
+    const statusLabel = p.status==='completado' ? 'Completado' : (p.status==='pausado'?'Pausado':'Activo');
+    const statusColor = p.status==='completado' ? 'var(--terminado)' : (p.status==='pausado'?'var(--espera)':'var(--curso)');
+    return `
+    <div class="proj-card">
+      <div class="proj-card-head">
+        <div class="proj-name">${escapeHtml(p.name)}</div>
+        <div class="proj-status" style="background:${statusColor}22; color:${statusColor}; border:1px solid ${statusColor}55">${statusLabel}</div>
+      </div>
+      <div class="proj-obj">${escapeHtml(p.objective)}</div>
+      <div class="proj-bar-track"><div class="proj-bar-fill" style="width:${pct}%"></div></div>
+      <div class="proj-progress-row"><span>Progreso</span><b>${pct}% · ${done}/${ts.length}</b></div>
+      <div class="proj-foot">
+        <div><span class="lbl">Próximo hito</span>${escapeHtml(p.nextMilestone||'—')}</div>
+        <div style="text-align:right"><span class="lbl">Fecha objetivo</span>${fmtDate(p.targetDate)}</div>
+      </div>
+      <div class="proj-actions">
+        <div class="btn btn-sm btn-mentor" data-mentor-project="${p.id}">💡 Mentor IA${p.aiInsight?' · ver ideas':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('view-container').innerHTML = `<div class="proj-grid">${cards}</div>`;
+}
+
+/* ---------------- RENDER: CRM ---------------- */
+function renderCRM(){
+  const cards = state.clients.map(c=>{
+    const st = CLIENT_STATES[c.status] || CLIENT_STATES.prospecto;
+    return `
+    <div class="crm-card">
+      <div class="crm-top">
+        <div>
+          <div class="crm-company">${escapeHtml(c.company)}</div>
+          <div class="crm-contact">${escapeHtml(c.contact||'Sin contacto')}${c.role?' · '+escapeHtml(c.role):''}</div>
+        </div>
+        <div class="crm-state" style="background:${st.color}22; color:${st.color}; border:1px solid ${st.color}55">${st.icon} ${st.label}</div>
+      </div>
+      ${c.email?`<div class="crm-row"><span class="ic">✉</span>${escapeHtml(c.email)}</div>`:''}
+      ${c.phone?`<div class="crm-row"><span class="ic">☎</span>${escapeHtml(c.phone)}</div>`:''}
+      ${c.project?`<div class="crm-row"><span class="ic">◇</span>${escapeHtml(projectName(c.project))}</div>`:''}
+      ${c.nextAction ? `<div class="crm-next">➜ ${escapeHtml(c.nextAction)}${c.followUpDate?' · '+fmtDate(c.followUpDate):''}</div>` : ''}
+      <div class="crm-actions">
+        <div class="btn btn-sm" data-edit-client="${c.id}">✏️ Editar</div>
+        <div class="btn btn-sm btn-danger-line" data-delete-client="${c.id}">Eliminar</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('view-container').innerHTML = `
+    <div class="section-title">Clientes registrados<div class="line"></div><div class="btn btn-sm btn-primary" id="new-client-btn">+ Nuevo cliente</div></div>
+    <div class="crm-grid">${cards || '<div class="empty-state"><div class="es-ic">☰</div>Aún no hay clientes registrados.</div>'}</div>
+  `;
+  document.getElementById('new-client-btn').addEventListener('click', ()=>openClientModal());
+}
+
+/* ---------------- RENDER: CALENDAR ---------------- */
+function renderCalendar(){
+  const y = state.calYear, m = state.calMonth;
+  const first = new Date(y,m,1);
+  const startDow = (first.getDay()+6)%7; // lunes=0
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const daysInPrev = new Date(y,m,0).getDate();
+  const monthName = first.toLocaleDateString('es-CO',{month:'long', year:'numeric'});
+
+  const events = {};
+  state.tasks.forEach(t=>{ if(t.dueDate){ (events[t.dueDate] = events[t.dueDate]||[]).push({label:t.title, color:STATUS[t.status].color}); } });
+  state.clients.forEach(c=>{ if(c.followUpDate){ (events[c.followUpDate] = events[c.followUpDate]||[]).push({label:'Seguimiento: '+c.company, color:'var(--brass)'}); } });
+  state.projects.forEach(p=>{ if(p.targetDate){ (events[p.targetDate] = events[p.targetDate]||[]).push({label:'Hito: '+p.name, color:'var(--curso)'}); } });
+
+  let cells = '';
+  for(let i=0;i<startDow;i++){
+    const dnum = daysInPrev-startDow+i+1;
+    cells += `<div class="cal-cell other"><div class="cal-daynum">${dnum}</div></div>`;
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const iso = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = iso===todayISO();
+    const evts = (events[iso]||[]).slice(0,3);
+    const evtHtml = evts.map(e=>`<div class="cal-evt" style="background:${e.color}22; color:${e.color}">${escapeHtml(e.label)}</div>`).join('');
+    const more = (events[iso]||[]).length>3 ? `<div class="cal-evt" style="color:var(--text-3); background:transparent">+${events[iso].length-3} más</div>` : '';
+    cells += `<div class="cal-cell ${isToday?'today':''}"><div class="cal-daynum">${d}</div>${evtHtml}${more}</div>`;
+  }
+  const totalCells = startDow+daysInMonth;
+  const trailing = (7 - (totalCells%7)) % 7;
+  for(let i=1;i<=trailing;i++){ cells += `<div class="cal-cell other"><div class="cal-daynum">${i}</div></div>`; }
+
+  const dows = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  document.getElementById('view-container').innerHTML = `
+    <div class="cal-head">
+      <div class="btn btn-sm" id="cal-prev">‹</div>
+      <div class="cal-month">${monthName.charAt(0).toUpperCase()+monthName.slice(1)}</div>
+      <div class="btn btn-sm" id="cal-next">›</div>
+      <div class="btn btn-sm btn-ghost" id="cal-today" style="margin-left:auto">Hoy</div>
+    </div>
+    <div class="cal-grid">
+      ${dows.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+      ${cells}
+    </div>
+  `;
+  document.getElementById('cal-prev').addEventListener('click', ()=>{ state.calMonth--; if(state.calMonth<0){state.calMonth=11; state.calYear--;} renderCalendar(); });
+  document.getElementById('cal-next').addEventListener('click', ()=>{ state.calMonth++; if(state.calMonth>11){state.calMonth=0; state.calYear++;} renderCalendar(); });
+  document.getElementById('cal-today').addEventListener('click', ()=>{ const n=new Date(); state.calMonth=n.getMonth(); state.calYear=n.getFullYear(); renderCalendar(); });
+}
+
+/* ---------------- MODAL: TASK FORM ---------------- */
+function openTaskModal(taskId){
+  state.editingTaskId = taskId || null;
+  const t = taskId ? state.tasks.find(x=>x.id===taskId) : null;
+  document.getElementById('task-modal-title').textContent = t ? 'Editar tarea' : 'Nueva tarea';
+  document.getElementById('task-delete-btn').style.display = t ? 'inline-flex' : 'none';
+
+  const projOptions = state.projects.map(p=>`<option value="${p.id}" ${t&&t.project===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
+  const prioOptions = Object.entries(PRIORITY).map(([k,v])=>`<option value="${k}" ${t&&t.priority===k?'selected':(!t&&k==='media'?'selected':'')}>${v.label}</option>`).join('');
+  const statOptions = KCOLS.map(k=>`<option value="${k}" ${t&&t.status===k?'selected':(!t&&k==='backlog'?'selected':'')}>${STATUS[k].icon} ${STATUS[k].label}</option>`).join('');
+
+  document.getElementById('task-form').innerHTML = `
+    <div class="form-group"><label>Título</label><input id="f-title" value="${escapeHtml(t?t.title:'')}" placeholder="Nombre de la tarea"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Proyecto</label><select id="f-proj">${projOptions}</select></div>
+      <div class="form-group"><label>Prioridad</label><select id="f-prio">${prioOptions}</select></div>
+    </div>
+    <div class="form-group"><label>Descripción</label><textarea id="f-desc" placeholder="Descripción breve">${escapeHtml(t?t.description:'')}</textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Estado</label><select id="f-status">${statOptions}</select></div>
+      <div class="form-group"><label>Fecha límite</label><input type="date" id="f-due" value="${t?t.dueDate:''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Responsable</label><input id="f-resp" value="${escapeHtml(t?t.responsible:'Yo')}"></div>
+      <div class="form-group"><label>Cliente / empresa</label><input id="f-client" value="${escapeHtml(t?t.client:'')}"></div>
+    </div>
+    <div class="form-group"><label>Próximo paso (acción concreta)</label><input id="f-next" value="${escapeHtml(t?t.nextStep:'')}" placeholder="Ej: Enviar diagnóstico al área comercial"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Esperando a (si aplica)</label><input id="f-waitfor" value="${escapeHtml(t?t.waitingFor:'')}" placeholder="Persona o empresa"></div>
+      <div class="form-group"><label>Próximo seguimiento</label><input type="date" id="f-followup" value="${t?t.nextFollowUp:''}"></div>
+    </div>
+    <div class="form-group"><label>Dependencias</label><input id="f-deps" value="${escapeHtml(t?t.dependencies:'')}" placeholder="Tareas o factores de los que depende"></div>
+    <div class="form-group"><label>Notas</label><textarea id="f-notes" placeholder="Notas adicionales">${escapeHtml(t?t.notes:'')}</textarea></div>
+    ${t ? `<div class="mentor-link" id="open-mentor-from-task">💡 Pedir ideas al mentor sobre esta tarea</div>` : ''}
+  `;
+  document.getElementById('task-overlay').classList.add('open');
+  if(t){
+    document.getElementById('open-mentor-from-task').addEventListener('click', ()=>{
+      closeOverlay('task-overlay');
+      openMentor('task', t.id);
+    });
+  }
+}
+
+function saveTaskForm(){
+  const title = document.getElementById('f-title').value.trim();
+  if(!title){ toast('El título es obligatorio'); return; }
+  const status = document.getElementById('f-status').value;
+  if(status==='hoy'){
+    const count = state.tasks.filter(x=>x.status==='hoy' && x.id!==state.editingTaskId).length;
+    if(count>=3) toast('⚠ Ya hay 3 tareas en HOY. Se agregó igualmente — considera reorganizar.');
+  }
+  const data = {
+    title, project: document.getElementById('f-proj').value,
+    priority: document.getElementById('f-prio').value,
+    description: document.getElementById('f-desc').value,
+    status, dueDate: document.getElementById('f-due').value,
+    responsible: document.getElementById('f-resp').value,
+    client: document.getElementById('f-client').value,
+    nextStep: document.getElementById('f-next').value,
+    waitingFor: document.getElementById('f-waitfor').value,
+    nextFollowUp: document.getElementById('f-followup').value,
+    dependencies: document.getElementById('f-deps').value,
+    notes: document.getElementById('f-notes').value,
+  };
+  if(state.editingTaskId){
+    const t = state.tasks.find(x=>x.id===state.editingTaskId);
+    const wasStatus = t.status;
+    Object.assign(t, data);
+    if(data.status==='espera' && wasStatus!=='espera' && !t.waitingSince) t.waitingSince = todayISO();
+    if(data.status==='terminado' && wasStatus!=='terminado') t.completedDate = todayISO();
+    if(data.status!=='terminado') t.completedDate='';
+    checkProjectCompletion(t.project);
+    toast('Tarea actualizada');
+  } else {
+    const newTask = Object.assign({id:uid('t'), waitingSince: data.status==='espera'?todayISO():'', completedDate: data.status==='terminado'?todayISO():'', createdAt: todayISO()}, data);
+    state.tasks.push(newTask);
+    toast('Tarea creada');
+  }
+  closeOverlay('task-overlay');
+  persist(); render();
+}
+
+/* ---------------- MODAL: CLIENT FORM ---------------- */
+function openClientModal(clientId){
+  state.editingClientId = clientId || null;
+  const c = clientId ? state.clients.find(x=>x.id===clientId) : null;
+  document.getElementById('client-modal-title').textContent = c ? 'Editar cliente' : 'Nuevo cliente';
+  document.getElementById('client-delete-btn').style.display = c ? 'inline-flex' : 'none';
+
+  const projOptions = `<option value="">Sin proyecto</option>` + state.projects.map(p=>`<option value="${p.id}" ${c&&c.project===p.id?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
+  const stateOptions = Object.entries(CLIENT_STATES).map(([k,v])=>`<option value="${k}" ${c&&c.status===k?'selected':(!c&&k==='prospecto'?'selected':'')}>${v.icon} ${v.label}</option>`).join('');
+
+  document.getElementById('client-form').innerHTML = `
+    <div class="form-row">
+      <div class="form-group"><label>Empresa</label><input id="cf-company" value="${escapeHtml(c?c.company:'')}"></div>
+      <div class="form-group"><label>Contacto</label><input id="cf-contact" value="${escapeHtml(c?c.contact:'')}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Cargo</label><input id="cf-role" value="${escapeHtml(c?c.role:'')}"></div>
+      <div class="form-group"><label>Estado de relación</label><select id="cf-status">${stateOptions}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Email</label><input id="cf-email" value="${escapeHtml(c?c.email:'')}"></div>
+      <div class="form-group"><label>Teléfono</label><input id="cf-phone" value="${escapeHtml(c?c.phone:'')}"></div>
+    </div>
+    <div class="form-group"><label>Proyecto relacionado</label><select id="cf-project">${projOptions}</select></div>
+    <div class="form-row">
+      <div class="form-group"><label>Próxima acción</label><input id="cf-next" value="${escapeHtml(c?c.nextAction:'')}"></div>
+      <div class="form-group"><label>Fecha de seguimiento</label><input type="date" id="cf-followup" value="${c?c.followUpDate:''}"></div>
+    </div>
+    <div class="form-group"><label>Notas</label><textarea id="cf-notes">${escapeHtml(c?c.notes:'')}</textarea></div>
+  `;
+  document.getElementById('client-overlay').classList.add('open');
+}
+function saveClientForm(){
+  const company = document.getElementById('cf-company').value.trim();
+  if(!company){ toast('El nombre de la empresa es obligatorio'); return; }
+  const data = {
+    company, contact: document.getElementById('cf-contact').value,
+    role: document.getElementById('cf-role').value,
+    status: document.getElementById('cf-status').value,
+    email: document.getElementById('cf-email').value,
+    phone: document.getElementById('cf-phone').value,
+    project: document.getElementById('cf-project').value,
+    nextAction: document.getElementById('cf-next').value,
+    followUpDate: document.getElementById('cf-followup').value,
+    notes: document.getElementById('cf-notes').value,
+  };
+  if(state.editingClientId){
+    Object.assign(state.clients.find(x=>x.id===state.editingClientId), data);
+    toast('Cliente actualizado');
+  } else {
+    state.clients.push(Object.assign({id:uid('c')}, data));
+    toast('Cliente creado');
+  }
+  closeOverlay('client-overlay');
+  persist(); render();
+}
+
+function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
+
+/* ---------------- CAJA DE IDEAS ---------------- */
+function buildIdeaPrompt(ideaText){
+  return `Eres el cerebro organizador de un sistema personal de gestión de proyectos. Recibes una idea en bruto, tal como se le ocurrió a la persona, y debes convertirla en un proyecto estructurado y ejecutable.
+
+IDEA EN BRUTO:
+"""
+${ideaText}
+"""
+
+Devuelve ÚNICAMENTE un objeto JSON válido, sin texto adicional, sin backticks, sin markdown, con exactamente esta forma:
+{
+  "project": {
+    "name": "NOMBRE DEL PROYECTO, corto, en mayúsculas",
+    "objective": "objetivo del proyecto en una frase clara y concreta",
+    "nextMilestone": "el primer hito importante a lograr"
+  },
+  "tasks": [
+    {
+      "title": "título de la tarea, acción concreta",
+      "priority": "critica|alta|media|baja",
+      "nextStep": "próximo paso ejecutable y específico para esta tarea",
+      "description": "breve descripción opcional, puede ir vacía"
+    }
+  ]
+}
+
+Reglas:
+- Genera entre 6 y 12 tareas realistas que cubran desde el primer paso inmediato hasta un primer resultado tangible.
+- La primera tarea del arreglo debe ser la acción más concreta que se puede empezar hoy mismo.
+- No inventes fechas, nombres de personas o empresas que no estén mencionados en la idea.
+- Todo en español, sin relleno genérico — que cada tarea sea específica a esta idea.
+- El JSON debe ser válido y parseable, sin comentarios ni texto fuera de las llaves.`;
+}
+
+async function generateProjectFromIdea(){
+  const textarea = document.getElementById('idea-input');
+  const ideaText = textarea.value.trim();
+  if(!ideaText){ toast('Escribe tu idea primero'); return; }
+
+  const btn = document.getElementById('idea-generate-btn');
+  const statusEl = document.getElementById('idea-status');
+  btn.style.pointerEvents = 'none'; btn.style.opacity = '.55';
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = `<div class="mentor-loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span> Organizando tu idea en un proyecto...</div>`;
+
+  const raw = await callClaude(buildIdeaPrompt(ideaText), 2400);
+  btn.style.pointerEvents = ''; btn.style.opacity = '';
+
+  if(!raw){
+    statusEl.innerHTML = `<div class="mentor-error">No pude generar el proyecto. Verifica tu conexión e inténtalo de nuevo.</div>`;
+    return;
+  }
+  const jsonStr = extractJsonBlock(raw);
+  if(!jsonStr){
+    statusEl.innerHTML = `<div class="mentor-error">La respuesta no se pudo interpretar. Intenta de nuevo o reformula la idea.</div>`;
+    console.error('Respuesta cruda del mentor:', raw);
+    return;
+  }
+  let parsed;
+  try{
+    parsed = JSON.parse(jsonStr);
+  }catch(e){
+    statusEl.innerHTML = `<div class="mentor-error">La respuesta quedó incompleta. Intenta de nuevo — a veces basta con reintentar.</div>`;
+    console.error('JSON inválido del mentor:', jsonStr);
+    return;
+  }
+  if(!parsed || !parsed.project || !Array.isArray(parsed.tasks) || !parsed.tasks.length){
+    statusEl.innerHTML = `<div class="mentor-error">La respuesta no tenía el formato esperado. Intenta de nuevo.</div>`;
+    return;
+  }
+
+  const projectId = uid('p');
+  state.projects.push({
+    id: projectId,
+    name: (parsed.project.name || 'NUEVO PROYECTO').toString().toUpperCase().slice(0,60),
+    objective: parsed.project.objective || ideaText.slice(0,160),
+    status: 'activo',
+    targetDate: addDaysISO(60),
+    nextMilestone: parsed.project.nextMilestone || '',
+  });
+
+  parsed.tasks.forEach((tk, i)=>{
+    state.tasks.push({
+      id: uid('t'),
+      title: (tk.title || 'Tarea sin título').toString().slice(0,140),
+      project: projectId,
+      priority: PRIORITY[tk.priority] ? tk.priority : 'media',
+      status: i===0 ? 'semana' : 'backlog',
+      nextStep: tk.nextStep || '',
+      description: tk.description || '',
+      responsible: 'Yo', client: '', dueDate: '', dependencies: '', notes: '',
+      waitingFor: '', waitingSince: '', nextFollowUp: '', completedDate: '',
+      createdAt: todayISO(),
+    });
+  });
+
+  persist();
+  closeOverlay('idea-overlay');
+  textarea.value = '';
+  statusEl.style.display = 'none';
+  state.view = 'projects';
+  render();
+  toast(`✅ Proyecto "${state.projects[state.projects.length-1].name}" creado con ${parsed.tasks.length} tareas`);
+}
+
+/* ---------------- MENTOR IA ---------------- */
+function inlineMd(s){ return escapeHtml(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>'); }
+function mdLite(text){
+  const lines = (text||'').split('\n');
+  let html='', inList=false;
+  lines.forEach(raw=>{
+    const line = raw.trim();
+    if(!line){ if(inList){html+='</ul>'; inList=false;} return; }
+    if(/^[-•*]\s+/.test(line)){
+      if(!inList){ html+='<ul>'; inList=true; }
+      html += `<li>${inlineMd(line.replace(/^[-•*]\s+/,''))}</li>`;
+    } else if(/^#{1,4}\s+/.test(line) || (/^[A-ZÁÉÍÓÚÑ0-9][A-ZÁÉÍÓÚÑ0-9\s\/:]{2,38}$/.test(line) && line===line.toUpperCase())){
+      if(inList){html+='</ul>'; inList=false;}
+      html += `<h4>${inlineMd(line.replace(/^#{1,4}\s+/,''))}</h4>`;
+    } else {
+      if(inList){html+='</ul>'; inList=false;}
+      html += `<p>${inlineMd(line)}</p>`;
+    }
+  });
+  if(inList) html+='</ul>';
+  return html || `<p>${inlineMd(text||'')}</p>`;
+}
+function relTime(iso){
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff/60000);
+  if(mins<1) return 'hace un momento';
+  if(mins<60) return `hace ${mins} min`;
+  const hrs = Math.floor(mins/60);
+  if(hrs<24) return `hace ${hrs} h`;
+  return `hace ${Math.floor(hrs/24)} d`;
+}
+async function callClaude(promptText, maxTokens){
+  try{
+    const response = await fetch("/api/mentor", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({prompt: promptText, maxTokens: maxTokens || 1000})
+    });
+    const data = await response.json();
+    if(!response.ok || !data || !data.text) return null;
+    return data.text.trim();
+  }catch(e){
+    console.error('Error consultando al mentor IA', e);
+    return null;
+  }
+}
+function extractJsonBlock(text){
+  if(!text) return null;
+  let t = text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'').trim();
+  const start = t.indexOf('{');
+  const end = t.lastIndexOf('}');
+  if(start===-1 || end===-1 || end<start) return null;
+  return t.slice(start, end+1);
+}
+function buildProjectPrompt(p){
+  const ts = state.tasks.filter(t=>t.project===p.id);
+  const done = ts.filter(t=>t.status==='terminado').length;
+  const taskList = ts.slice(0,14).map(t=>`- [${STATUS[t.status].label}] ${t.title}`).join('\n') || 'Sin tareas registradas todavía.';
+  return `Eres el mentor personal de un profesional que está construyendo varios proyectos a la vez. Habla directo, específico y honesto, nunca genérico ni corporativo.
+
+PROYECTO: ${p.name}
+Objetivo: ${p.objective}
+Progreso: ${done}/${ts.length} tareas completadas
+Tareas actuales:
+${taskList}
+
+Dame una mezcla breve de:
+- PRÓXIMOS PASOS: 2-3 acciones concretas y accionables
+- RIESGOS: 1-2 obstáculos reales a vigilar
+- OPORTUNIDADES: 2-3 ideas u oportunidades que quizás no ha considerado
+- PREGUNTAS: 1-2 preguntas clave para pensar mejor el proyecto
+
+Usa encabezados cortos en MAYÚSCULAS y viñetas con "-". Sé específico a este proyecto exacto, nunca genérico. Máximo 220 palabras. Responde en español, tono de mentor cercano y honesto.`;
+}
+function buildTaskPrompt(t){
+  const proj = state.projects.find(p=>p.id===t.project);
+  return `Eres el mentor personal de un profesional, ayudándolo a ejecutar una tarea concreta de forma más inteligente. Habla directo y específico, nunca genérico.
+
+TAREA: ${t.title}
+Proyecto: ${proj?proj.name:t.project}
+Descripción: ${t.description||'—'}
+Próximo paso definido: ${t.nextStep||'—'}
+Prioridad: ${PRIORITY[t.priority].label} · Estado: ${STATUS[t.status].label}
+Notas: ${t.notes||'—'}
+
+Dame una mezcla breve y práctica de:
+- ENFOQUE: 1-2 ideas para abordarla de forma más inteligente
+- RIESGO: un error común a evitar en esta tarea
+- OPORTUNIDAD: una idea relacionada que quizás no ha considerado
+- PREGUNTA: una pregunta que le ayude a pensarla mejor
+
+Usa viñetas con "-". Sé específico a esta tarea exacta, nunca genérico. Máximo 140 palabras. Responde en español, tono de mentor cercano.`;
+}
+async function openMentor(kind, id, force){
+  const entity = kind==='project' ? state.projects.find(p=>p.id===id) : state.tasks.find(t=>t.id===id);
+  if(!entity) return;
+  state.mentorContext = {kind, id};
+  const title = kind==='project' ? entity.name : entity.title;
+  document.getElementById('mentor-title').textContent = '💡 Mentor IA · ' + title;
+  document.getElementById('mentor-overlay').classList.add('open');
+  const contentEl = document.getElementById('mentor-content');
+  const metaEl = document.getElementById('mentor-meta');
+
+  if(entity.aiInsight && !force){
+    contentEl.innerHTML = mdLite(entity.aiInsight.text);
+    metaEl.textContent = 'Generado ' + relTime(entity.aiInsight.at);
+    return;
+  }
+  contentEl.innerHTML = `<div class="mentor-loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span> Pensando ideas para ti...</div>`;
+  metaEl.textContent = '';
+  const prompt = kind==='project' ? buildProjectPrompt(entity) : buildTaskPrompt(entity);
+  const text = await callClaude(prompt);
+  if(!(state.mentorContext && state.mentorContext.kind===kind && state.mentorContext.id===id)) return;
+  if(!text){
+    contentEl.innerHTML = `<div class="mentor-error">No pude generar ideas en este momento. Verifica tu conexión e inténtalo de nuevo.</div>`;
+    return;
+  }
+  entity.aiInsight = {text, at:new Date().toISOString()};
+  persist();
+  contentEl.innerHTML = mdLite(text);
+  metaEl.textContent = 'Generado ahora mismo';
+}
+
+/* ---------------- RENDER MAIN ---------------- */
+function render(){
+  renderNav();
+  renderTicker();
+  renderTopControls();
+  if(state.view==='dashboard') renderDashboard();
+  else if(state.view==='kanban') renderKanban();
+  else if(state.view==='projects') renderProjects();
+  else if(state.view==='crm') renderCRM();
+  else if(state.view==='calendar') renderCalendar();
+  bindViewEvents();
+}
+
+function bindViewEvents(){
+  document.querySelectorAll('[data-done]').forEach(el=> el.addEventListener('click', e=>{ e.stopPropagation(); markDone(el.dataset.done); }));
+  document.querySelectorAll('[data-reopen]').forEach(el=> el.addEventListener('click', e=>{ e.stopPropagation(); reopenTask(el.dataset.reopen); }));
+  document.querySelectorAll('[data-edit]').forEach(el=> el.addEventListener('click', e=>{ e.stopPropagation(); openTaskModal(el.dataset.edit); }));
+  document.querySelectorAll('[data-open-task]').forEach(el=> el.addEventListener('click', ()=> openTaskModal(el.dataset.openTask)));
+  document.querySelectorAll('[data-edit-client]').forEach(el=> el.addEventListener('click', ()=> openClientModal(el.dataset.editClient)));
+  document.querySelectorAll('[data-delete-client]').forEach(el=> el.addEventListener('click', ()=>{ if(confirm('¿Eliminar este cliente?')) deleteClient(el.dataset.deleteClient); }));
+  document.querySelectorAll('[data-mentor-project]').forEach(el=> el.addEventListener('click', e=>{ e.stopPropagation(); openMentor('project', el.dataset.mentorProject); }));
+  document.querySelectorAll('[data-mentor-task]').forEach(el=> el.addEventListener('click', e=>{ e.stopPropagation(); openMentor('task', el.dataset.mentorTask); }));
+}
+
+/* ---------------- EVENTOS GLOBALES ---------------- */
+document.getElementById('nav').addEventListener('click', e=>{
+  const item = e.target.closest('.nav-item');
+  if(!item) return;
+  state.view = item.dataset.view;
+  render();
+});
+document.getElementById('new-task-btn').addEventListener('click', ()=> openTaskModal());
+document.getElementById('task-save-btn').addEventListener('click', saveTaskForm);
+document.getElementById('client-save-btn').addEventListener('click', saveClientForm);
+document.getElementById('task-delete-btn').addEventListener('click', ()=>{
+  if(state.editingTaskId && confirm('¿Eliminar esta tarea?')){ closeOverlay('task-overlay'); deleteTask(state.editingTaskId); }
+});
+document.getElementById('client-delete-btn').addEventListener('click', ()=>{
+  if(state.editingClientId && confirm('¿Eliminar este cliente?')){ closeOverlay('client-overlay'); deleteClient(state.editingClientId); }
+});
+document.querySelectorAll('[data-close]').forEach(el=> el.addEventListener('click', ()=> closeOverlay(el.dataset.close)));
+document.querySelectorAll('.overlay').forEach(ov=> ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('open'); }));
+document.getElementById('global-search').addEventListener('input', e=>{ state.search = e.target.value; render(); });
+document.getElementById('filter-toggle-btn').addEventListener('click', ()=>{
+  document.getElementById('filter-panel').classList.toggle('open');
+});
+document.getElementById('mentor-regenerate-btn').addEventListener('click', ()=>{
+  if(state.mentorContext) openMentor(state.mentorContext.kind, state.mentorContext.id, true);
+});
+document.getElementById('new-idea-btn').addEventListener('click', ()=>{
+  document.getElementById('idea-status').style.display='none';
+  document.getElementById('idea-overlay').classList.add('open');
+});
+document.getElementById('idea-generate-btn').addEventListener('click', generateProjectFromIdea);
+
+/* ---------------- INIT ---------------- */
+(async function init(){
+  document.getElementById('view-container').innerHTML = `<div class="empty-state"><div class="es-ic">◆</div>Cargando I-WORK Command Center...</div>`;
+  await loadState();
+  renderFilterPanel();
+  render();
+})();
+</script>
+</body>
+</html>
